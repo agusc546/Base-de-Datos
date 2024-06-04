@@ -68,7 +68,6 @@ public class Conexion {
         DBConnection.connect();
 
         int option;
-
         System.out.println("\nMenu de opciones del cine:");
         do {
             System.out.println("\n1- Insertar un cine");
@@ -79,10 +78,10 @@ public class Conexion {
             option = input.nextInt();
             switch (option) {
                 case 1:
-                    System.exit(0);
+                    insertCinema(DBConnection);
                     break;
                 case 2:
-                    System.exit(0);
+                    insertRoom(DBConnection);
                     break;
                 case 3:
                     listarCinesConSalas(DBConnection);
@@ -90,18 +89,17 @@ public class Conexion {
                 case 4:
                     DBConnection.disconnect();
                 default:
-                    System.out.println("ingrese una opcion valida.");
+                    System.out.println("Ingrese una opción válida por favor.");
             }
         } while (option != 4);
 
     }
 
-
-    public static void listarCinesConSalas(Conexion conexion) {
+    public static void listarCinesConSalas(Conexion database) {
         String query = "SELECT cine.*, sala.* FROM cine " +
                 "INNER JOIN sala ON cine.nombre_cine = sala.nombre_cine";
 
-        try (PreparedStatement statement = conexion.prepareStatement(query);
+        try (PreparedStatement statement = database.prepareStatement(query);
              ResultSet resultSet = statement.executeQuery()) {
 
             while (resultSet.next()) {
@@ -110,6 +108,50 @@ public class Conexion {
                 System.out.println("Nombre del cine: " + cineName + ", " + "Numero de sala: " + salaId);
             }
 
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void insertCinema(Conexion database) {
+        Scanner input = new Scanner(System.in);
+        System.out.println("Ingrese nombre: ");
+        String cineName = input.nextLine();
+        System.out.println("Ingrese dirección: ");
+        String address = input.nextLine();
+        System.out.println("Ingrese teléfono: ");
+        String telNumber = input.nextLine();
+
+        String query = "INSERT INTO Cine (nombre_cine, direccion, telefono) VALUES (?, ?, ?)";
+
+        try (PreparedStatement statement = database.prepareStatement(query)) {
+            statement.setString(1, cineName);
+            statement.setString(2, address);
+            statement.setString(3, telNumber);
+            statement.executeUpdate();
+            System.out.println("Cine agregado exitosamente.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void insertRoom(Conexion database) {
+        Scanner input = new Scanner(System.in);
+        System.out.println("Ingrese número de sala: ");
+        String nroSala = input.nextLine();
+        System.out.println("Ingrese cantidad de butacas: ");
+        String cantSeats = input.nextLine();
+        System.out.println("Ingrese nombre del cine: ");
+        String cineName = input.nextLine();
+
+        String query = "INSERT INTO Sala (nro_sala, cant_butacas, nombre_cine) VALUES (?, ?, ?)";
+
+        try (PreparedStatement statement = database.prepareStatement(query)) {
+            statement.setString(1, nroSala);
+            statement.setString(2, cantSeats);
+            statement.setString(3, cineName);
+            statement.executeUpdate();
+            System.out.println("Sala agregada exitosamente.");
         } catch (SQLException e) {
             e.printStackTrace();
         }
