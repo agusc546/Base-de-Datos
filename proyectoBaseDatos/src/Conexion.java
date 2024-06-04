@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 import java.util.Scanner; 
 
 
-public class Conexion{
+public class Conexion {
     String bd = ""; 
     String url = "jdbc:mysql://localhost:3306/";
     String user = "root"; 
@@ -29,11 +29,11 @@ public class Conexion{
         this.password = password;
     }
 
-    public Connection conectar(){
+    public Connection connect(){
     try {
         Class.forName(driver);
         cx = DriverManager.getConnection(url + bd, user, password);
-        System.out.println("Se conecto a la base de datos" + " " + bd);
+        System.out.println("Se conectó a la base de datos" + " " + bd + "con éxito");
         } catch (ClassNotFoundException | SQLException ex){
             System.out.println("No se pudo conectar a la base de datos: " + bd);
             Logger.getLogger(Conexion.class.getName()).log(Level.SEVERE,null,ex);
@@ -42,72 +42,82 @@ public class Conexion{
         return cx;
     }
 
-    public void desconectar() {
+    public void disconnect() {
         try {
             cx.close();
         } catch (SQLException ex) {
             Logger.getLogger(Conexion.class.getName()).log(Level.SEVERE,null,ex);
         }
-        System.out.println(STR."La base de datos \{bd} se cerró con extio");
+        System.out.println(STR."\nLa base de datos \{bd} se cerró con extio");
         System.exit(0);
     }
 
 
     public static void main (String[] args){
-        Scanner teclado = new Scanner(System.in);
+        Scanner input = new Scanner(System.in);
        
         System.out.print("Ingrese el nombre de su base de datos: ");
-        String nombreBd = teclado.nextLine();
+        String DBName = input.nextLine();
        
         System.out.print("Ingrese la contraseña de su base de datos: ");
-        String password = teclado.nextLine();
+        String password = input.nextLine();
         System.out.println("");
         
-        Conexion conectarBd = new Conexion(nombreBd, password); 
+        Conexion DBConnection = new Conexion(DBName, password);
 
-        conectarBd.conectar();
+        DBConnection.connect();
 
-        int opcion;
+        int option;
 
-        System.out.println("Menu de opciones del cine.");
+        System.out.println("\nMenu de opciones del cine:");
         do {
-                System.out.println("1- Insertar un cine");
-                System.out.println("2- Insertar una sala en un cine");
-                System.out.println("3- Listar todos los cines con la información de sus salas");
-                System.out.println("4- Salir");
-                System.out.print("Ingrese una opcion: "); 
-                opcion = teclado.nextInt();
-                switch (opcion) {
-                    case 1:
-                        System.exit(0);
-                        break;
-                    case 2: 
-                        System.exit(0);
-                        break; 
-                    case 3:
-                        System.exit(0);
-                        break;
-                    case 4: 
-                        conectarBd.desconectar();
-                    default:
-                        System.out.println("ingrese una opcion valida.");
-                }
-        } while (opcion != 4);
+            System.out.println("\n1- Insertar un cine");
+            System.out.println("2- Insertar una sala en un cine");
+            System.out.println("3- Listar todos los cines con la información de sus salas");
+            System.out.println("4- Salir");
+            System.out.print("Ingrese una opcion: ");
+            option = input.nextInt();
+            switch (option) {
+                case 1:
+                    System.exit(0);
+                    break;
+                case 2:
+                    System.exit(0);
+                    break;
+                case 3:
+                    listarCinesConSalas(DBConnection);
+                    break;
+                case 4:
+                    DBConnection.disconnect();
+                default:
+                    System.out.println("ingrese una opcion valida.");
+            }
+        } while (option != 4);
 
     }
 
-    /**
-    private static void ListarCinesConSalas(Conexion conexion){
-        try {
-            String query = "SELECT  * from cines innerjoin salas";
-            PreparedStatement statement = conexion.PreparedStatement(query);
-            ResultSet resultSet = statement.executeQuery();
 
+    public static void listarCinesConSalas(Conexion conexion) {
+        String query = "SELECT cine.*, sala.* FROM cine " +
+                "INNER JOIN sala ON cine.nombre_cine = sala.nombre_cine";
+
+        try (PreparedStatement statement = conexion.prepareStatement(query);
+             ResultSet resultSet = statement.executeQuery()) {
+
+            while (resultSet.next()) {
+                String cineName = resultSet.getString("nombre_cine");
+                int salaId = resultSet.getInt("nro_sala");
+                System.out.println("Nombre del cine: " + cineName + ", " + "Numero de sala: " + salaId);
+            }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-     */
+
+    private PreparedStatement prepareStatement(String consulta) throws SQLException {
+        return cx.prepareStatement(consulta);
+    }
+
 
 }
