@@ -9,46 +9,60 @@ import java.util.logging.Logger;
 import java.util.Scanner; 
 
 
-public class Conexion {
-    String bd = ""; 
-    String url = "jdbc:mysql://localhost:3306/";
-    String user = "root"; 
-    String password = ""; //poner la contrasena de ustedes para conectar al servidor
-    String driver = "com.mysql.cj.jdbc.Driver";
-    Connection cx; 
+public class DBConnection {
+    private String db = "";
+    private String password;
+    private Connection connection;
 
 
-    // metodo constructor 
-    public Conexion (String bd)  {
-        this.bd = bd; 
+    public DBConnection (String bd)  {
+        this.db = bd;
     }
 
-    //constructor con password
-    public Conexion (String bd, String password) {
-        this.bd = bd;
+    public DBConnection (String db, String password) {
+        this.db = db;
         this.password = password;
+    }
+
+    public String getDb() {
+        return db;
+    }
+
+    public void setConnection(Connection connection) {
+        this.connection = connection;
+    }
+
+    public Connection getConnection() {
+        return connection;
+    }
+
+    public String getPassword() {
+        return password;
     }
 
     public Connection connect(){
     try {
+        String driver = "com.mysql.cj.jdbc.Driver";
         Class.forName(driver);
-        cx = DriverManager.getConnection(url + bd, user, password);
-        System.out.println("Se conectó a la base de datos" + " " + bd + "con éxito");
+        String user = "root";
+        String url = "jdbc:mysql://localhost:3306/";
+        setConnection(DriverManager.getConnection(url + this.getDb(), user, this.getPassword()));
+        System.out.println("Se conectó a la base de datos " + this.getDb() + " con éxito");
         } catch (ClassNotFoundException | SQLException ex){
-            System.out.println("No se pudo conectar a la base de datos: " + bd);
-            Logger.getLogger(Conexion.class.getName()).log(Level.SEVERE,null,ex);
+            System.out.println("No se pudo conectar a la base de datos: " + this.getDb());
+            Logger.getLogger(DBConnection.class.getName()).log(Level.SEVERE,null,ex);
             System.exit(0);
         }
-        return cx;
+        return this.getConnection();
     }
 
     public void disconnect() {
         try {
-            cx.close();
+            this.getConnection().close();
         } catch (SQLException ex) {
-            Logger.getLogger(Conexion.class.getName()).log(Level.SEVERE,null,ex);
+            Logger.getLogger(DBConnection.class.getName()).log(Level.SEVERE,null,ex);
         }
-        System.out.println(STR."\nLa base de datos \{bd} se cerró con extio");
+        System.out.println(STR."\nLa base de datos \{this.getDb()} se cerró con extio");
         System.exit(0);
     }
 
@@ -62,10 +76,10 @@ public class Conexion {
         System.out.print("Ingrese la contraseña de su base de datos: ");
         String password = input.nextLine();
         System.out.println("");
-        
-        Conexion DBConnection = new Conexion(DBName, password);
 
-        DBConnection.connect();
+        DBConnection database = new DBConnection(DBName, password);
+
+        database.connect();
 
         int option;
         System.out.println("\nMenu de opciones del cine:");
@@ -78,16 +92,16 @@ public class Conexion {
             option = input.nextInt();
             switch (option) {
                 case 1:
-                    insertCinema(DBConnection);
+                    insertCinema(database);
                     break;
                 case 2:
-                    insertRoom(DBConnection);
+                    insertRoom(database);
                     break;
                 case 3:
-                    listarCinesConSalas(DBConnection);
+                    listarCinesConSalas(database);
                     break;
                 case 4:
-                    DBConnection.disconnect();
+                    database.disconnect();
                 default:
                     System.out.println("Ingrese una opción válida por favor.");
             }
@@ -95,7 +109,7 @@ public class Conexion {
 
     }
 
-    public static void listarCinesConSalas(Conexion database) {
+    public static void listarCinesConSalas(DBConnection database) {
         String query = "SELECT cine.*, sala.* FROM cine " +
                 "INNER JOIN sala ON cine.nombre_cine = sala.nombre_cine";
 
@@ -103,9 +117,9 @@ public class Conexion {
              ResultSet resultSet = statement.executeQuery()) {
 
             while (resultSet.next()) {
-                String cineName = resultSet.getString("nombre_cine");
+                String cinemaName = resultSet.getString("nombre_cine");
                 int salaId = resultSet.getInt("nro_sala");
-                System.out.println("Nombre del cine: " + cineName + ", " + "Numero de sala: " + salaId);
+                System.out.println("Nombre del cine: " + cinemaName + ", " + "Numero de sala: " + salaId);
             }
 
         } catch (SQLException e) {
@@ -113,10 +127,10 @@ public class Conexion {
         }
     }
 
-    public static void insertCinema(Conexion database) {
+    public static void insertCinema(DBConnection database) {
         Scanner input = new Scanner(System.in);
         System.out.println("Ingrese nombre: ");
-        String cineName = input.nextLine();
+        String cinemaName = input.nextLine();
         System.out.println("Ingrese dirección: ");
         String address = input.nextLine();
         System.out.println("Ingrese teléfono: ");
@@ -125,7 +139,7 @@ public class Conexion {
         String query = "INSERT INTO Cine (nombre_cine, direccion, telefono) VALUES (?, ?, ?)";
 
         try (PreparedStatement statement = database.prepareStatement(query)) {
-            statement.setString(1, cineName);
+            statement.setString(1, cinemaName);
             statement.setString(2, address);
             statement.setString(3, telNumber);
             statement.executeUpdate();
@@ -135,7 +149,7 @@ public class Conexion {
         }
     }
 
-    public static void insertRoom(Conexion database) {
+    public static void insertRoom(DBConnection database) {
         Scanner input = new Scanner(System.in);
         System.out.println("Ingrese número de sala: ");
         String nroSala = input.nextLine();
@@ -157,8 +171,8 @@ public class Conexion {
         }
     }
 
-    private PreparedStatement prepareStatement(String consulta) throws SQLException {
-        return cx.prepareStatement(consulta);
+    private PreparedStatement prepareStatement(String c) throws SQLException {
+        return this.getConnection().prepareStatement(c);
     }
 
 
