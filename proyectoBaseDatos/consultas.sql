@@ -15,3 +15,6 @@
 
 -- cantidad de funciones por cine 
 -- select nombre_cine, count(nombre_cine) from funcion group by nombre_cine
+
+-- listar las peliculas con la cantidad de funciones de cada una
+-- select * from (select titulo_español,count(id_pelicula) as cant_funciones from peliculas natural join funcion group by titulo_español ) as sub_consulta
