@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Scanner; 
-
+import java.util.ArrayList;
 
 public class DBConnection {
     private String db = "";
@@ -62,7 +62,7 @@ public class DBConnection {
         } catch (SQLException ex) {
             Logger.getLogger(DBConnection.class.getName()).log(Level.SEVERE,null,ex);
         }
-        System.out.println(STR."\nLa base de datos \{this.getDb()} se cerró con extio");
+        System.out.println("\n La base de datos {this.getDb()} se cerró con exito");
         System.exit(0);
     }
 
@@ -114,12 +114,34 @@ public class DBConnection {
                 "INNER JOIN sala ON cine.nombre_cine = sala.nombre_cine";
 
         try (PreparedStatement statement = database.prepareStatement(query);
-             ResultSet resultSet = statement.executeQuery()) {
-
+            ResultSet resultSet = statement.executeQuery()) {
+             
+            ArrayList<String> cines = new ArrayList<>();
+            String cineAct = "";
+            String auxiliar = "";
+            int k = -1;
             while (resultSet.next()) {
                 String cinemaName = resultSet.getString("nombre_cine");
-                int salaId = resultSet.getInt("nro_sala");
-                System.out.println("Nombre del cine: " + cinemaName + ", " + "Numero de sala: " + salaId);
+                int salaId;
+                int cantBut;
+                if (cineAct.equals(cinemaName)) {
+                    salaId = resultSet.getInt("nro_sala");
+                    cantBut = resultSet.getInt("cant_butacas");
+                    auxiliar +=  "\n" + "Sala " + salaId + ": " + cantBut + " butacas";
+                    cines.set(k,auxiliar);
+                }else {
+                    cineAct = cinemaName;
+                    salaId = resultSet.getInt("nro_sala");
+                    cantBut = resultSet.getInt("cant_butacas");
+                    auxiliar = "Cine: " + cinemaName  + "\n" + "Sala " + salaId + ": " + cantBut + " butacas";
+                    cines.add(auxiliar);
+                    k++;
+                }
+            }
+            int i = 0;
+            while (i < cines.size()) {
+                System.out.println(cines.get(i) + "\n");
+                i++;
             }
 
         } catch (SQLException e) {
