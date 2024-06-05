@@ -62,7 +62,7 @@ public class DBConnection {
         } catch (SQLException ex) {
             Logger.getLogger(DBConnection.class.getName()).log(Level.SEVERE,null,ex);
         }
-        System.out.println("\n La base de datos {this.getDb()} se cerró con exito");
+        System.out.println("\n La base de datos " + this.getDb() + " se cerró con exito");
         System.exit(0);
     }
 
@@ -167,7 +167,11 @@ public class DBConnection {
             statement.executeUpdate();
             System.out.println("Cine agregado exitosamente.");
         } catch (SQLException e) {
-            e.printStackTrace();
+            if (e.getSQLState().equals("23000")) {
+                System.out.println("\n" +"Error: el cine ya existe");
+            } else {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -189,7 +193,11 @@ public class DBConnection {
             statement.executeUpdate();
             System.out.println("Sala agregada exitosamente.");
         } catch (SQLException e) {
-            e.printStackTrace();
+            if (e.getSQLState().equals("23000")) {
+                System.out.println("\n" + "Error: la sala ya existe");
+            }else{
+                e.printStackTrace();
+            }
         }
     }
 
